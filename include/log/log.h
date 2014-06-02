@@ -19,8 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DEBUG_LOG_H
-#define __DEBUG_LOG_H
+#ifndef __LIB_LOG_H
+#define __LIB_LOG_H
 
 #include <stdlib.h>
 
@@ -34,9 +34,9 @@
  * @{
  *
  * Для удобного использования определены макросы влияющие на поведение
- * журналирование. Список переменных определяющие поведение макросов:
- * @li __LOG_LEVEL_MAX максимальный уровень журналирования определяемый во время компиляции.
- * @li __LOG_PREFIX префикс для событий
+ * журналирования. Список переменных определяющие поведение макросов:
+ * @li __LOG_LEVEL_COMPILE максимальный уровень журналирования определяемый во время компиляции.
+ * @li __LOG_NAMESPACE простраство для журналирования событий
  * @li ___LOG_FUNC(level, ...) макрос выполняющий запись в журнал
  *
  * Прототип функции журналирования:
@@ -49,41 +49,41 @@
 
 /** уровни журналирования, в порядке убывания приоритета */
 typedef enum log_level {
-	__LOG_EMERG		= 0,	/**< system is unusable */
-	__LOG_ALERT		= 1,	/**< action must be taken immediately */
-	__LOG_CRIT		= 2,	/**< critical conditions */
-	__LOG_ERR		= 3,	/**< error conditions */
-	__LOG_WARNING 	= 4,	/**< warning conditions */
-	__LOG_NOTICE	= 5,	/**< normal, but significant, condition */
-	__LOG_INFO		= 6,	/**< informational message */
-	__LOG_DEBUG		= 7,	/**< debug-level message */
+	__LOG_EMERG		= 0,  /**< system is unusable */
+	__LOG_ALERT		= 1,  /**< action must be taken immediately */
+	__LOG_CRIT		= 2,  /**< critical conditions */
+	__LOG_ERR		= 3,  /**< error conditions */
+	__LOG_WARNING 	= 4,  /**< warning conditions */
+	__LOG_NOTICE	= 5,  /**< normal, but significant, condition */
+	__LOG_INFO		= 6,  /**< informational message */
+	__LOG_DEBUG		= 7,  /**< debug-level message */
 } log_level_t;
 
 /*------------------------------------------------------------------------*/
 
 /**
- * @def __LOG_LEVEL_MAX
+ * @def __LOG_LEVEL_COMPILE
  *
  * Максимальный уровень журналирования определяемый во время компиляции.
  */
-#ifndef __LOG_LEVEL_MAX
+#ifndef __LOG_LEVEL_COMPILE
 #	ifdef NDEBUG
-#		define __LOG_LEVEL_MAX __LOG_WARNING
-#else /* NDEBUG */
-#		define __LOG_LEVEL_MAX __LOG_DEBUG
+#		define __LOG_LEVEL_COMPILE __LOG_WARNING
+#	else /* NDEBUG */
+#		define __LOG_LEVEL_COMPILE __LOG_DEBUG
 #	endif /* NDEBUG */
-#endif /* __LOG_LEVEL_MAX */
+#endif /* __LOG_LEVEL_COMPILE */
 
 /*------------------------------------------------------------------------*/
 
 /**
- * @def __LOG_PREFIX
+ * @def __LOG_NAMESPACE
  *
- * Префикс к сообщениям. Может использоваться внутри модулей.
+ * Простраство имен журналирования сообщений, может использоваться внутри модулей.
  */
-#ifndef __LOG_PREFIX
-#	define __LOG_PREFIX
-#endif /* __LOG_PREFIX */
+#ifndef __LOG_NAMESPACE
+#	define __LOG_NAMESPACE NULL
+#endif /* __LOG_NAMESPACE */
 
 /*------------------------------------------------------------------------*/
 
@@ -122,10 +122,10 @@ log_level_t log_get_level();
  * Вывод сообщения о критической ошибке и завершения работы программы.
  */
 
-#if __LOG_EMERG <= __LOG_LEVEL_MAX
+#if __LOG_EMERG <= __LOG_LEVEL_COMPILE
 #	define _EMERG(...)											\
 do {															\
-	__LOG_FUNC(__LOG_EMERG, __LOG_PREFIX __VA_ARGS__);			\
+	__LOG_FUNC(__LOG_EMERG, __LOG_NAMESPACE, __VA_ARGS__);			\
 	abort();													\
 } while(0)
 #else
@@ -140,8 +140,8 @@ do {															\
  * Вывод сообщения о критической ошибке.
  */
 
-#if __LOG_ALERT <= __LOG_LEVEL_MAX
-#	define _ALERT(...) __LOG_FUNC(__LOG_ALERT, __LOG_PREFIX __VA_ARGS__)
+#if __LOG_ALERT <= __LOG_LEVEL_COMPILE
+#	define _ALERT(...) __LOG_FUNC(__LOG_ALERT, __LOG_NAMESPACE, __VA_ARGS__)
 #else
 #	define _ALERT(...)
 #endif
@@ -154,8 +154,8 @@ do {															\
  * Вывод сообщения о серьезной ошибке.
  */
 
-#if __LOG_CRIT <= __LOG_LEVEL_MAX
-#	define _CRIT(...) __LOG_FUNC(__LOG_CRIT, __LOG_PREFIX __VA_ARGS__)
+#if __LOG_CRIT <= __LOG_LEVEL_COMPILE
+#	define _CRIT(...) __LOG_FUNC(__LOG_CRIT, __LOG_NAMESPACE, __VA_ARGS__)
 #else
 #	define _CRIT(...)
 #endif
@@ -168,8 +168,8 @@ do {															\
  * Вывод сообщения об ошибке.
  */
 
-#if __LOG_ERR <= __LOG_LEVEL_MAX
-#	define _ERR(...) __LOG_FUNC(__LOG_ERR, __LOG_PREFIX __VA_ARGS__)
+#if __LOG_ERR <= __LOG_LEVEL_COMPILE
+#	define _ERR(...) __LOG_FUNC(__LOG_ERR, __LOG_NAMESPACE, __VA_ARGS__)
 #else
 #	define _ERR(...)
 #endif
@@ -182,8 +182,8 @@ do {															\
  * Вывод предупреждения.
  */
 
-#if __LOG_WARNING <= __LOG_LEVEL_MAX
-#	define _WARNING(...) __LOG_FUNC(__LOG_WARNING, __LOG_PREFIX __VA_ARGS__)
+#if __LOG_WARNING <= __LOG_LEVEL_COMPILE
+#	define _WARNING(...) __LOG_FUNC(__LOG_WARNING, __LOG_NAMESPACE, __VA_ARGS__)
 #else
 #	define _WARNING(...)
 #endif
@@ -196,8 +196,8 @@ do {															\
  * Вывод уведомления.
  */
 
-#if __LOG_NOTICE <= __LOG_LEVEL_MAX
-#	define _NOTICE(...) __LOG_FUNC(__LOG_NOTICE, __LOG_PREFIX __VA_ARGS__)
+#if __LOG_NOTICE <= __LOG_LEVEL_COMPILE
+#	define _NOTICE(...) __LOG_FUNC(__LOG_NOTICE, __LOG_NAMESPACE, __VA_ARGS__)
 #else
 #	define _NOTICE(...)
 #endif
@@ -210,8 +210,8 @@ do {															\
  * Вывод информационного сообщения.
  */
 
-#if __LOG_INFO <= __LOG_LEVEL_MAX
-#	define _INFO(...) __LOG_FUNC(__LOG_INFO, __LOG_PREFIX __VA_ARGS__)
+#if __LOG_INFO <= __LOG_LEVEL_COMPILE
+#	define _INFO(...) __LOG_FUNC(__LOG_INFO, __LOG_NAMESPACE, __VA_ARGS__)
 #else
 #	define _INFO(...)
 #endif
@@ -224,8 +224,8 @@ do {															\
  * Вывод отладочной информации.
  */
 
-#if __LOG_DEBUG <= __LOG_LEVEL_MAX
-#	define _DEBUG(...) __LOG_FUNC(__LOG_DEBUG, __LOG_PREFIX __VA_ARGS__)
+#if __LOG_DEBUG <= __LOG_LEVEL_COMPILE
+#	define _DEBUG(...) __LOG_FUNC(__LOG_DEBUG, __LOG_NAMESPACE, __VA_ARGS__)
 #else
 #	define _DEBUG(...)
 #endif
@@ -234,4 +234,4 @@ do {															\
  * @}
  */
 
-#endif /* __DEBUG_LOG_H */
+#endif /* __LIB_LOG_H */

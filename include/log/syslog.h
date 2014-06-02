@@ -16,7 +16,7 @@
  * @param level level of logging for this message
  * @param format format of produced message
  */
-__attribute__((nonnull(2), format(printf, 2, 3)))
-void syslog_printf(log_level_t level, const char* format, ...);
+__attribute__((nonnull(3), format(printf, 3, 4)))
+void syslog_printf(log_level_t level, const char *ns, const char* format, ...);
 
 #endif /* __DEBUG_SYSLOG_H */

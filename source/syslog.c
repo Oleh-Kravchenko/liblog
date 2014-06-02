@@ -3,7 +3,7 @@
 
 #include <log/syslog.h>
 
-void syslog_printf(log_level_t level, const char* format, ...)
+void syslog_printf(log_level_t level, const char *ns, const char* format, ...)
 {
 	va_list ap;
 
