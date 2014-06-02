@@ -6,11 +6,22 @@ INCLUDE_DIRECTORIES(include)
 
 ADD_DEFINITIONS(-pedantic -std=gnu99)
 
-ADD_EXECUTABLE(demo source/main.c
-include/log/syslog.h
-include/log/stderr.h
-include/log/log.h
-source/syslog.c
+ADD_LIBRARY(log SHARED
 source/log.c
 source/stderr.c
+source/syslog.c
+)
+
+ADD_EXECUTABLE(demo source/main.c)
+
+TARGET_LINK_LIBRARIES(demo log)
+
+CONFIGURE_FILE(
+"${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+IMMEDIATE @ONLY
+)
+
+ADD_CUSTOM_TARGET(uninstall "${CMAKE_COMMAND}"
+-P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
 )

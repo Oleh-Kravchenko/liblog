@@ -19,13 +19,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
+#ifndef __LIB_LOG_STDERR_H
+#define __LIB_LOG_STDERR_H
 
 #include <liblog/log.h>
 
-void log_stderr(log_level_t level, const char *format, va_list ap)
-{
-	fprintf(stderr, "<%d> ", level);
-	vfprintf(stderr, format, ap);
-	fputc('\n', stderr);
-}
+/**
+ * @brief print log message into stderr
+ * @param [in] level level of logging
+ * @param [in] format format of message
+ * @param [in] ap arguments list
+ */
+void log_stderr(log_level_t level, const char *format, va_list ap);
+
+#endif /* __LIB_LOG_STDERR_H */

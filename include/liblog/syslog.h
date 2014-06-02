@@ -2,7 +2,7 @@
  * @file
  * @author Oleh Kravchenko <oleg@kaa.org.ua>
  *
- * log -- Logging macros
+ * liblog -- Logging macros
  * Copyright (C) 2013  Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,13 +19,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
+#ifndef __LIB_LOG_SYSLOG_H
+#define __LIB_LOG_SYSLOG_H
 
 #include <liblog/log.h>
 
-void log_stderr(log_level_t level, const char *format, va_list ap)
-{
-	fprintf(stderr, "<%d> ", level);
-	vfprintf(stderr, format, ap);
-	fputc('\n', stderr);
-}
+/**
+ * @brief print log message into syslog
+ * @param [in] level level of logging
+ * @param [in] format format of message
+ * @param [in] ap arguments list
+ */
+void log_syslog(log_level_t level, const char *format, va_list ap);
+
+#endif /* __LIB_LOG_SYSLOG_H */

@@ -22,7 +22,10 @@
 #ifndef __LIB_LOG_H
 #define __LIB_LOG_H
 
-#include <stdlib.h>
+#include <limits.h>
+#include <stdarg.h>
+
+#include <liblog/list.h>
 
 /**
  * @defgroup log Logging macros
@@ -49,15 +52,33 @@
 
 /** уровни журналирования, в порядке убывания приоритета */
 typedef enum log_level {
-	__LOG_EMERG		= 0,  /**< system is unusable */
-	__LOG_ALERT		= 1,  /**< action must be taken immediately */
-	__LOG_CRIT		= 2,  /**< critical conditions */
-	__LOG_ERR		= 3,  /**< error conditions */
-	__LOG_WARNING 	= 4,  /**< warning conditions */
-	__LOG_NOTICE	= 5,  /**< normal, but significant, condition */
-	__LOG_INFO		= 6,  /**< informational message */
-	__LOG_DEBUG		= 7,  /**< debug-level message */
+	__LOG_EMERG     = 0,  /**< system is unusable */
+	__LOG_ALERT     = 1,  /**< action must be taken immediately */
+	__LOG_CRIT      = 2,  /**< critical conditions */
+	__LOG_ERR       = 3,  /**< error conditions */
+	__LOG_WARNING   = 4,  /**< warning conditions */
+	__LOG_NOTICE    = 5,  /**< normal, but significant, condition */
+	__LOG_INFO      = 6,  /**< informational message */
+	__LOG_DEBUG     = 7,  /**< debug-level message */
 } log_level_t;
+
+/*------------------------------------------------------------------------*/
+
+typedef void (*log_func_t)(log_level_t, const char *, va_list);
+
+typedef struct log_namespace {
+	/** list pointer */
+	list_node_t node;
+
+	/** logger function */
+	log_func_t log_func;
+
+	/** current logging level */
+	log_level_t current;
+
+	/** namespace of logging */
+	char name[PATH_MAX];
+} log_namespace_t;
 
 /*------------------------------------------------------------------------*/
 
@@ -68,11 +89,26 @@ typedef enum log_level {
  */
 #ifndef __LOG_LEVEL_COMPILE
 #	ifdef NDEBUG
-#		define __LOG_LEVEL_COMPILE __LOG_WARNING
+#		define __LOG_LEVEL_COMPILE __LOG_INFO
 #	else /* NDEBUG */
 #		define __LOG_LEVEL_COMPILE __LOG_DEBUG
 #	endif /* NDEBUG */
 #endif /* __LOG_LEVEL_COMPILE */
+
+/*------------------------------------------------------------------------*/
+
+/**
+ * @def __LOG_LEVEL_RUNTIME
+ *
+ * Максимальный уровень журналирования во время работы программы.
+ */
+#ifndef __LOG_LEVEL_RUNTIME
+#	ifdef NDEBUG
+#		define __LOG_LEVEL_RUNTIME __LOG_NOTICE
+#	else /* NDEBUG */
+#		define __LOG_LEVEL_RUNTIME __LOG_INFO
+#	endif /* NDEBUG */
+#endif /* __LOG_LEVEL_RUNTIME */
 
 /*------------------------------------------------------------------------*/
 
@@ -87,32 +123,46 @@ typedef enum log_level {
 
 /*------------------------------------------------------------------------*/
 
-#ifndef __LOG_LEVEL
-#define __LOG_LEVEL log_get_level()
-
 /**
  * @brief set new level of logging
- * @param level new debugging level
+ * @param [in] ns namespace of logging
+ * @param [in] level new debugging level
  * @return old level of logging
  */
-log_level_t log_set_level(log_level_t level);
+log_level_t log_set(const char *ns, log_level_t level);
 
 /**
  * @brief get current level of logging
+ * @param [in] ns namespace of logging
  * @return current level of logging
  */
-log_level_t log_get_level();
-
-#endif /* __LOG_LEVEL */
+log_level_t log_get(const char *ns);
 
 /**
- * @def __LOG_FUNC
- *
- * Функция выполняющая отладочного сообщения запись в журнал.
+ * @brief set type of logger
+ * @param [in] ns namespace of logging
+ * @param [in] func new function for writing log
+ * @return old function
  */
-#ifndef __LOG_FUNC
-#	error __LOG_FUNC not defined
-#endif /* __LOG_FUNC */
+log_func_t log_set_type(const char *ns, log_func_t func);
+
+/**
+ * @brief get type of logger
+ * @param [in] ns namespace of logging
+ * @return function
+ */
+log_func_t log_get_type(const char *ns);
+
+/**
+ * @brief print message using current type of logger
+ * @param [in] level debugging level
+ * @param [in] ns namespace of logging (can be NULL)
+ * @param [in] format format string
+ */
+void log_printf(log_level_t level, const char *ns, const char *format, ...);
+
+/** cleanup namespaces */
+void log_gc(void);
 
 /*------------------------------------------------------------------------*/
 
@@ -123,11 +173,11 @@ log_level_t log_get_level();
  */
 
 #if __LOG_EMERG <= __LOG_LEVEL_COMPILE
-#	define _EMERG(...)											\
-do {															\
-	__LOG_FUNC(__LOG_EMERG, __LOG_NAMESPACE, __VA_ARGS__);			\
-	abort();													\
-} while(0)
+#	define _EMERG(...)                                                    \
+	do {                                                                  \
+		log_printf(__LOG_EMERG, __LOG_NAMESPACE, __VA_ARGS__);            \
+		abort();                                                          \
+	} while(0)
 #else
 #	define _EMERG(...)
 #endif
@@ -141,7 +191,7 @@ do {															\
  */
 
 #if __LOG_ALERT <= __LOG_LEVEL_COMPILE
-#	define _ALERT(...) __LOG_FUNC(__LOG_ALERT, __LOG_NAMESPACE, __VA_ARGS__)
+#	define _ALERT(...) log_printf(__LOG_ALERT, __LOG_NAMESPACE, __VA_ARGS__)
 #else
 #	define _ALERT(...)
 #endif
@@ -155,7 +205,7 @@ do {															\
  */
 
 #if __LOG_CRIT <= __LOG_LEVEL_COMPILE
-#	define _CRIT(...) __LOG_FUNC(__LOG_CRIT, __LOG_NAMESPACE, __VA_ARGS__)
+#	define _CRIT(...) log_printf(__LOG_CRIT, __LOG_NAMESPACE, __VA_ARGS__)
 #else
 #	define _CRIT(...)
 #endif
@@ -169,7 +219,7 @@ do {															\
  */
 
 #if __LOG_ERR <= __LOG_LEVEL_COMPILE
-#	define _ERR(...) __LOG_FUNC(__LOG_ERR, __LOG_NAMESPACE, __VA_ARGS__)
+#	define _ERR(...) log_printf(__LOG_ERR, __LOG_NAMESPACE, __VA_ARGS__)
 #else
 #	define _ERR(...)
 #endif
@@ -183,7 +233,7 @@ do {															\
  */
 
 #if __LOG_WARNING <= __LOG_LEVEL_COMPILE
-#	define _WARNING(...) __LOG_FUNC(__LOG_WARNING, __LOG_NAMESPACE, __VA_ARGS__)
+#	define _WARNING(...) log_printf(__LOG_WARNING, __LOG_NAMESPACE, __VA_ARGS__)
 #else
 #	define _WARNING(...)
 #endif
@@ -197,7 +247,7 @@ do {															\
  */
 
 #if __LOG_NOTICE <= __LOG_LEVEL_COMPILE
-#	define _NOTICE(...) __LOG_FUNC(__LOG_NOTICE, __LOG_NAMESPACE, __VA_ARGS__)
+#	define _NOTICE(...) log_printf(__LOG_NOTICE, __LOG_NAMESPACE, __VA_ARGS__)
 #else
 #	define _NOTICE(...)
 #endif
@@ -211,7 +261,7 @@ do {															\
  */
 
 #if __LOG_INFO <= __LOG_LEVEL_COMPILE
-#	define _INFO(...) __LOG_FUNC(__LOG_INFO, __LOG_NAMESPACE, __VA_ARGS__)
+#	define _INFO(...) log_printf(__LOG_INFO, __LOG_NAMESPACE, __VA_ARGS__)
 #else
 #	define _INFO(...)
 #endif
@@ -225,7 +275,7 @@ do {															\
  */
 
 #if __LOG_DEBUG <= __LOG_LEVEL_COMPILE
-#	define _DEBUG(...) __LOG_FUNC(__LOG_DEBUG, __LOG_NAMESPACE, __VA_ARGS__)
+#	define _DEBUG(...) log_printf(__LOG_DEBUG, __LOG_NAMESPACE, __VA_ARGS__)
 #else
 #	define _DEBUG(...)
 #endif
