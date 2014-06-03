@@ -6,6 +6,9 @@ INCLUDE_DIRECTORIES(include)
 
 ADD_DEFINITIONS(-pedantic -std=gnu99)
 
+# support subdirectory
+SET(LIBLOG_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
+
 # main
 SET(LIBLOG_SOURCES
 source/log.c
@@ -49,4 +52,5 @@ include/liblog/log.h
 include/liblog/list.h
 include/liblog/stderr.h
 include/liblog/syslog.h
-DESTINATION include/liblog)
+DESTINATION include/liblog
+)
