@@ -37,14 +37,38 @@
  * @{
  *
  * Для удобного использования определены макросы влияющие на поведение
- * журналирования. Список переменных определяющие поведение макросов:
- * @li __LOG_LEVEL_COMPILE максимальный уровень журналирования определяемый во время компиляции.
- * @li __LOG_NAMESPACE простраство для журналирования событий
- * @li ___LOG_FUNC(level, ...) макрос выполняющий запись в журнал
+ * журналирования:
+ * @li __LOG_LEVEL_COMPILE максимальный уровень журналирования определяемый во время компиляции
+ * @li __LOG_LEVEL_RUNTIME максимальный уровень журналирования по-умолчанию во время работы программы
+ * @li __LOG_NAMESPACE простраство для журналирования событий, по-умолчанию ""
+ *
+ * На данный момент поддерживается два вида журналирования:
+ * @li stderr вывод отладочных сообщений в stderr
+ * @li syslog отправка отладочных сообщений в syslog демон
  *
  * Прототип функции журналирования:
  * @code
  * void func(log_level_t level, const char* format, ...)
+ * @endcode
+ *
+ * Пример использования:
+ * @li Печать в stderr
+ * @code
+ * #undef __LOG_NAMESPACE
+ * #define __LOG_NAMESPACE "stderr"
+ *	log_set_type(__LOG_NAMESPACE, log_stderr);
+ *	_DEBUG("debug-level message");
+ * @endcode
+ * @li syslog
+ * @code
+ * #undef __LOG_NAMESPACE
+ * #define __LOG_NAMESPACE "syslog"
+ *	log_set_type(__LOG_NAMESPACE, log_syslog);
+ *	_DEBUG("debug-level message");
+ * @endcode
+ * @li по завершении работы программы следует вызвать:
+ * @code
+ *	log_gc();
  * @endcode
  */
 
@@ -64,8 +88,10 @@ typedef enum log_level {
 
 /*------------------------------------------------------------------------*/
 
+/** logging function type */
 typedef void (*log_func_t)(log_level_t, const char *, va_list);
 
+/** type of namespace logging */
 typedef struct log_namespace {
 	/** list pointer */
 	list_node_t node;
@@ -118,7 +144,7 @@ typedef struct log_namespace {
  * Простраство имен журналирования сообщений, может использоваться внутри модулей.
  */
 #ifndef __LOG_NAMESPACE
-#	define __LOG_NAMESPACE NULL
+#	define __LOG_NAMESPACE ""
 #endif /* __LOG_NAMESPACE */
 
 /*------------------------------------------------------------------------*/

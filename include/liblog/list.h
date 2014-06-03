@@ -24,28 +24,36 @@
 
 #include <stddef.h>
 
+/** node of double-linked list */
 typedef struct list_node {
+	/** pointer to previous node */
 	struct list_node *prev;
 
+	/** pointer to next node */
 	struct list_node *next;
 } list_node_t;
 
+/** should be used to static initialization */
 #define list_init_value(list) { .prev = list, .next = list, }
 
+/** return pointer to struct of type, which hold field */
 #define containerof(ptr, type, field)                                     \
 	((type*)((size_t)(ptr) - offsetof(type, field)))
 
+/** iterate over all list nodes */
 #define list_foreach(list, item, type, field)                             \
 	for((item) = containerof((list)->next, type, field);                  \
 		&(item)->field != (list);                                         \
 		(item) = containerof((item)->field.next, type, field))
 
+/** iterate over all list nodes, also allow node deletion */
 #define list_foreach_safe(list, item, temp, type, field)                  \
 	for(item = containerof((list)->next, type, field),                    \
 		temp = containerof((item)->field.next, type, field);              \
 		&(item)->field != (list);                                         \
 		item = temp, temp = containerof((temp)->field.next, type, field))
 
+/** add node to list */
 #define list_add_node(list, item)                                         \
 	do {                                                                  \
 		(item)->next = (list)->next;                                      \
@@ -54,6 +62,7 @@ typedef struct list_node {
 		(list)->next = (item);                                            \
 	} while(0);                                                           \
 
+/** remove node from list */
 #define list_del_node(list)                                               \
 	do {                                                                  \
 		(list)->next->prev = (list)->prev;                                \

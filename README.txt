@@ -1,1 +1,1 @@
-liblog - библиотека для журналирования
+liblog - library for logging

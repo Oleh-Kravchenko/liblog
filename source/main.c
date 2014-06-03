@@ -1,7 +1,4 @@
 /**
- * @file
- * @author Oleh Kravchenko <oleg@kaa.org.ua>
- *
  * log -- Logging macros
  * Copyright (C) 2013  Oleh Kravchenko <oleg@kaa.org.ua>
  *
