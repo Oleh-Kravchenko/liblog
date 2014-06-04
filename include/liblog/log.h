@@ -24,6 +24,7 @@
 
 #include <limits.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #include <liblog/list.h>
 
