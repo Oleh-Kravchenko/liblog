@@ -1,5 +1,5 @@
 /**
- * log -- Logging macros
+ * liblog -- Logging macros
  * Copyright (C) 2013  Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,7 +24,7 @@ int main(void)
 	/* log to stderr */
 #undef __LOG_NAMESPACE
 #define __LOG_NAMESPACE "stderr"
-	log_set_type(__LOG_NAMESPACE, log_stderr);
+	liblog_type_set(__LOG_NAMESPACE, log_stderr);
 	_DEBUG("debug-level message");
 	_INFO("informational message");
 	_NOTICE("normal, but significant, condition");
@@ -36,7 +36,8 @@ int main(void)
 	/* log to syslog */
 #undef __LOG_NAMESPACE
 #define __LOG_NAMESPACE "syslog"
-	log_set_type(__LOG_NAMESPACE, log_syslog);
+	liblog_type_set(__LOG_NAMESPACE, log_syslog);
+	liblog_level_set(__LOG_NAMESPACE, __LOG_DEBUG);
 	_DEBUG("debug-level message");
 	_INFO("informational message");
 	_NOTICE("normal, but significant, condition");
@@ -45,7 +46,7 @@ int main(void)
 	_CRIT("critical conditions");
 	_ALERT("action must be taken immediately");
 
-	log_gc();
+	liblog_uninit();
 
 	return(0);
 }

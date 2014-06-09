@@ -22,6 +22,11 @@
 #ifndef __LIB_LOG_SYSLOG_H
 #define __LIB_LOG_SYSLOG_H
 
+#define __LOG_NAMESPACE_SYSLOG "syslog"
+
+#undef __LOG_NAMESPACE
+#define __LOG_NAMESPACE __LOG_NAMESPACE_SYSLOG
+
 #include <liblog/log.h>
 
 /**

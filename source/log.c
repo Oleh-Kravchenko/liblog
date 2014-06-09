@@ -2,7 +2,7 @@
  * @file
  * @author Oleh Kravchenko <oleg@kaa.org.ua>
  *
- * log -- Logging macros
+ * liblog -- Logging macros
  * Copyright (C) 2013  Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,8 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <liblog/log.h>
-#include <liblog/stderr.h>
+#include "liblog/stderr.h"
+#include "liblog/syslog.h"
 
 /*------------------------------------------------------------------------*/
 
@@ -59,7 +59,17 @@ static log_namespace_t *log_namespace_get(const char *ns)
 
 /*------------------------------------------------------------------------*/
 
-log_level_t log_set(const char *ns, log_level_t level)
+int liblog_init(void)
+{
+	liblog_type_set(__LOG_NAMESPACE_STDERR, log_stderr);
+	liblog_type_set(__LOG_NAMESPACE_SYSLOG, log_syslog);
+
+	return (0);
+}
+
+/*------------------------------------------------------------------------*/
+
+log_level_t liblog_level_set(const char *ns, log_level_t level)
 {
 	log_namespace_t *lns;
 
@@ -76,7 +86,7 @@ log_level_t log_set(const char *ns, log_level_t level)
 
 /*------------------------------------------------------------------------*/
 
-log_level_t log_get(const char *ns)
+log_level_t liblog_level_get(const char *ns)
 {
 	log_namespace_t *lns;
 
@@ -89,7 +99,7 @@ log_level_t log_get(const char *ns)
 
 /*------------------------------------------------------------------------*/
 
-log_func_t log_set_type(const char *ns, log_func_t func)
+log_func_t liblog_type_set(const char *ns, log_func_t func)
 {
 	log_namespace_t *lns;
 
@@ -106,7 +116,7 @@ log_func_t log_set_type(const char *ns, log_func_t func)
 
 /*------------------------------------------------------------------------*/
 
-log_func_t log_get_type(const char *ns)
+log_func_t liblog_type_get(const char *ns)
 {
 	log_namespace_t *lns;
 
@@ -119,7 +129,7 @@ log_func_t log_get_type(const char *ns)
 
 /*------------------------------------------------------------------------*/
 
-void log_printf(log_level_t level, const char *ns, const char *format, ...)
+void liblog_printf(log_level_t level, const char *ns, const char *format, ...)
 {
 	log_namespace_t *lns;
 
@@ -140,7 +150,7 @@ void log_printf(log_level_t level, const char *ns, const char *format, ...)
 
 /*------------------------------------------------------------------------*/
 
-void log_gc(void)
+void liblog_uninit(void)
 {
 	log_namespace_t *item, *tmp;
 

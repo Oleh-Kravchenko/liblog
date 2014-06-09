@@ -2,7 +2,7 @@
  * @file
  * @author Oleh Kravchenko <oleg@kaa.org.ua>
  *
- * log -- Logging macros
+ * liblog -- Logging macros
  * Copyright (C) 2013  Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -142,13 +142,24 @@ typedef struct log_namespace {
 /**
  * @def __LOG_NAMESPACE
  *
- * Простраство имен журналирования сообщений, может использоваться внутри модулей.
+ * Простраство имен журналирования сообщений,
+ * может использоваться внутри модулей.
  */
 #ifndef __LOG_NAMESPACE
-#	define __LOG_NAMESPACE ""
+#	define __LOG_NAMESPACE NULL
 #endif /* __LOG_NAMESPACE */
 
 /*------------------------------------------------------------------------*/
+
+/**
+ * @brief initialize liblog library
+ * @return 0, if successfull
+ *
+ * This function create namespace:
+ * @li NULL default namespace for stderr output
+ * @li "syslog" namespace for syslog output
+ */
+int liblog_init(void);
 
 /**
  * @brief set new level of logging
@@ -156,14 +167,14 @@ typedef struct log_namespace {
  * @param [in] level new debugging level
  * @return old level of logging
  */
-log_level_t log_set(const char *ns, log_level_t level);
+log_level_t liblog_level_set(const char *ns, log_level_t level);
 
 /**
  * @brief get current level of logging
  * @param [in] ns namespace of logging
  * @return current level of logging
  */
-log_level_t log_get(const char *ns);
+log_level_t liblog_level_get(const char *ns);
 
 /**
  * @brief set type of logger
@@ -171,14 +182,14 @@ log_level_t log_get(const char *ns);
  * @param [in] func new function for writing log
  * @return old function
  */
-log_func_t log_set_type(const char *ns, log_func_t func);
+log_func_t liblog_type_set(const char *ns, log_func_t func);
 
 /**
  * @brief get type of logger
  * @param [in] ns namespace of logging
  * @return function
  */
-log_func_t log_get_type(const char *ns);
+log_func_t liblog_type_get(const char *ns);
 
 /**
  * @brief print message using current type of logger
@@ -186,10 +197,40 @@ log_func_t log_get_type(const char *ns);
  * @param [in] ns namespace of logging (can be NULL)
  * @param [in] format format string
  */
-void log_printf(log_level_t level, const char *ns, const char *format, ...);
+void liblog_printf(log_level_t level, const char *ns, const char *format, ...);
 
 /** cleanup namespaces */
-void log_gc(void);
+void liblog_uninit(void);
+
+/*------------------------------------------------------------------------*/
+
+/**
+ * @def __LINE_STR__
+ *
+ * Provide string interpretation of __LINE__ macro.
+ */
+
+#ifndef __LINE_STR__
+
+#define __LINE_STR__STAGE1(line) #line
+#define __LINE_STR__STAGE2(line) __LINE_STR__STAGE1(line)
+
+#define __LINE_STR__ __LINE_STR__STAGE2(__LINE__)
+
+#endif /* __LINE_STR__ */
+
+/**
+ * @def __DEBUG__
+ *
+ * Provide string interpretation of __FILE__ and __LINE__ macros to use
+ * with log macros.
+ */
+
+#ifdef NDEBUG
+#	define __DEBUG__(...)
+#else
+#	define __DEBUG__(...) __FILE__ ":" __LINE_STR__ " " __VA_ARGS__
+#endif /* NDEBUG */
 
 /*------------------------------------------------------------------------*/
 
@@ -200,10 +241,13 @@ void log_gc(void);
  */
 
 #if __LOG_EMERG <= __LOG_LEVEL_COMPILE
-#	define _EMERG(...)                                                    \
-	do {                                                                  \
-		log_printf(__LOG_EMERG, __LOG_NAMESPACE, __VA_ARGS__);            \
-		abort();                                                          \
+#	define _EMERG(...)                                                     \
+	do {                                                                   \
+		liblog_printf(                                                     \
+			__LOG_EMERG, __LOG_NAMESPACE,                                  \
+			__DEBUG__(__VA_ARGS__)                                         \
+		);                                                                 \
+		abort();                                                           \
 	} while(0)
 #else
 #	define _EMERG(...)
@@ -218,7 +262,8 @@ void log_gc(void);
  */
 
 #if __LOG_ALERT <= __LOG_LEVEL_COMPILE
-#	define _ALERT(...) log_printf(__LOG_ALERT, __LOG_NAMESPACE, __VA_ARGS__)
+#	define _ALERT(...)                                                     \
+	liblog_printf(__LOG_ALERT, __LOG_NAMESPACE, __DEBUG__(__VA_ARGS__))
 #else
 #	define _ALERT(...)
 #endif
@@ -232,7 +277,8 @@ void log_gc(void);
  */
 
 #if __LOG_CRIT <= __LOG_LEVEL_COMPILE
-#	define _CRIT(...) log_printf(__LOG_CRIT, __LOG_NAMESPACE, __VA_ARGS__)
+#	define _CRIT(...)                                                      \
+	liblog_printf(__LOG_CRIT, __LOG_NAMESPACE, __DEBUG__(__VA_ARGS__))
 #else
 #	define _CRIT(...)
 #endif
@@ -246,7 +292,8 @@ void log_gc(void);
  */
 
 #if __LOG_ERR <= __LOG_LEVEL_COMPILE
-#	define _ERR(...) log_printf(__LOG_ERR, __LOG_NAMESPACE, __VA_ARGS__)
+#	define _ERR(...)                                                       \
+	liblog_printf(__LOG_ERR, __LOG_NAMESPACE, __DEBUG__(__VA_ARGS__))
 #else
 #	define _ERR(...)
 #endif
@@ -260,7 +307,8 @@ void log_gc(void);
  */
 
 #if __LOG_WARNING <= __LOG_LEVEL_COMPILE
-#	define _WARNING(...) log_printf(__LOG_WARNING, __LOG_NAMESPACE, __VA_ARGS__)
+#	define _WARNING(...)                                                   \
+	liblog_printf(__LOG_WARNING, __LOG_NAMESPACE, __DEBUG__(__VA_ARGS__))
 #else
 #	define _WARNING(...)
 #endif
@@ -274,7 +322,8 @@ void log_gc(void);
  */
 
 #if __LOG_NOTICE <= __LOG_LEVEL_COMPILE
-#	define _NOTICE(...) log_printf(__LOG_NOTICE, __LOG_NAMESPACE, __VA_ARGS__)
+#	define _NOTICE(...)                                                    \
+	liblog_printf(__LOG_NOTICE, __LOG_NAMESPACE, __DEBUG__(__VA_ARGS__))
 #else
 #	define _NOTICE(...)
 #endif
@@ -288,7 +337,8 @@ void log_gc(void);
  */
 
 #if __LOG_INFO <= __LOG_LEVEL_COMPILE
-#	define _INFO(...) log_printf(__LOG_INFO, __LOG_NAMESPACE, __VA_ARGS__)
+#	define _INFO(...)                                                      \
+	liblog_printf(__LOG_INFO, __LOG_NAMESPACE, __DEBUG__(__VA_ARGS__))
 #else
 #	define _INFO(...)
 #endif
@@ -302,7 +352,8 @@ void log_gc(void);
  */
 
 #if __LOG_DEBUG <= __LOG_LEVEL_COMPILE
-#	define _DEBUG(...) log_printf(__LOG_DEBUG, __LOG_NAMESPACE, __VA_ARGS__)
+#	define _DEBUG(...)                                                     \
+	liblog_printf(__LOG_DEBUG, __LOG_NAMESPACE, __DEBUG__(__VA_ARGS__))
 #else
 #	define _DEBUG(...)
 #endif
