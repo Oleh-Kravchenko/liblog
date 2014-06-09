@@ -3,7 +3,7 @@
  * @author Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * liblog -- Logging macros
- * Copyright (C) 2013  Oleh Kravchenko <oleg@kaa.org.ua>
+ * Copyright (C) 2014  Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

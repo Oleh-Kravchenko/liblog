@@ -1,6 +1,6 @@
 /**
  * liblog -- Logging macros
- * Copyright (C) 2013  Oleh Kravchenko <oleg@kaa.org.ua>
+ * Copyright (C) 2014  Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@
 
 int main(void)
 {
+	liblog_init();
+
 	/* log to stderr */
 #undef __LOG_NAMESPACE
 #define __LOG_NAMESPACE "stderr"
