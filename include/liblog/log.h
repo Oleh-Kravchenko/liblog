@@ -227,7 +227,7 @@ void liblog_uninit(void);
  */
 
 #ifdef NDEBUG
-#	define __DEBUG__(...)
+#	define __DEBUG__(...) __VA_ARGS__
 #else
 #	define __DEBUG__(...) __FILE__ ":" __LINE_STR__ " " __VA_ARGS__
 #endif /* NDEBUG */
