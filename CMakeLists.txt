@@ -11,6 +11,10 @@ SET(LIBLOG_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
 
 # main
 SET(LIBLOG_SOURCES
+include/tools/list.h
+include/liblog/log.h
+include/liblog/stderr.h
+include/liblog/syslog.h
 source/log.c
 source/stderr.c
 source/syslog.c
@@ -48,8 +52,8 @@ ARCHIVE DESTINATION lib
 )
 
 INSTALL(FILES
+include/tools/list.h
 include/liblog/log.h
-include/liblog/list.h
 include/liblog/stderr.h
 include/liblog/syslog.h
 DESTINATION include/liblog

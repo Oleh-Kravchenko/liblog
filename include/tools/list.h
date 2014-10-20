@@ -19,8 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LIB_LOG_LIST_H
-#define __LIB_LOG_LIST_H
+#ifndef __TOOLS_LIST_H
+#define __TOOLS_LIST_H
 
 #include <stddef.h>
 
@@ -41,33 +41,33 @@ typedef struct list_node {
 	((type*)((size_t)(ptr) - offsetof(type, field)))
 
 /** iterate over all list nodes */
-#define list_foreach(list, item, type, field)                             \
-	for((item) = containerof((list)->next, type, field);                  \
-		&(item)->field != (list);                                         \
-		(item) = containerof((item)->field.next, type, field))
+#define list_foreach(list, node, type, field)                             \
+	for((node) = containerof((list)->next, type, field);                  \
+		&(node)->field != (list);                                         \
+		(node) = containerof((node)->field.next, type, field))
 
 /** iterate over all list nodes, also allow node deletion */
-#define list_foreach_safe(list, item, temp, type, field)                  \
-	for(item = containerof((list)->next, type, field),                    \
-		temp = containerof((item)->field.next, type, field);              \
-		&(item)->field != (list);                                         \
-		item = temp, temp = containerof((temp)->field.next, type, field))
+#define list_foreach_safe(list, node, temp, type, field)                  \
+	for(node = containerof((list)->next, type, field),                    \
+		temp = containerof((node)->field.next, type, field);              \
+		&(node)->field != (list);                                         \
+		node = temp, temp = containerof((temp)->field.next, type, field))
 
 /** add node to list */
-#define list_add_node(list, item)                                         \
+#define list_add_node(list, node)                                         \
 	do {                                                                  \
-		(item)->next = (list)->next;                                      \
-		(item)->prev = (list);                                            \
-		(list)->next->prev = (item);                                      \
-		(list)->next = (item);                                            \
+		(node)->next = (list)->next;                                      \
+		(node)->prev = (list);                                            \
+		(list)->next->prev = (node);                                      \
+		(list)->next = (node);                                            \
 	} while(0);                                                           \
 
 /** remove node from list */
-#define list_del_node(list)                                               \
+#define list_del_node(node)                                               \
 	do {                                                                  \
-		(list)->next->prev = (list)->prev;                                \
-		(list)->prev->next = (list)->next;                                \
-		(list)->prev = (list)->next = 0;                                  \
+		(node)->next->prev = (node)->prev;                                \
+		(node)->prev->next = (node)->next;                                \
+		(node)->prev = (node)->next = 0;                                  \
 	} while(0);
 
-#endif /* __LIB_LOG_LIST_H */
+#endif /* __TOOLS_LIST_H */

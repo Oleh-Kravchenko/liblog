@@ -26,7 +26,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-#include <liblog/list.h>
+#include <tools/list.h>
 
 /**
  * @defgroup log Logging macros
