@@ -25,7 +25,9 @@
 
 void log_stderr(log_level_t level, const char *format, va_list ap)
 {
+	flockfile(stderr);
 	fprintf(stderr, "<%d> ", level);
 	vfprintf(stderr, format, ap);
 	fputc('\n', stderr);
+	funlockfile(stderr);
 }
