@@ -29,6 +29,22 @@
 #include <tools/list.h>
 
 /**
+ * @def __LIBLOG_EXPORT
+ *
+ * Type of exported functions.
+ */
+#if defined _WIN32 || defined __CYGWIN__
+#	ifdef __LIBLOG_EXPORTS
+#		define __LIBLOG_EXPORT __declspec(dllexport)
+#	else
+#		define __LIBLOG_EXPORT __declspec(dllimport)
+#	endif /* __LIBLOG_EXPORT */
+#else
+#	define __LIBLOG_EXPORT __attribute__ ((visibility("default")))
+#endif
+
+
+/**
  * @defgroup log Logging macros
  *
  * Эти макросы позволяют легко и быстро добавить журналирование в вашу

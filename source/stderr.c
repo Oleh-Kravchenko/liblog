@@ -23,7 +23,7 @@
 
 #include <liblog/log.h>
 
-void log_stderr(log_level_t level, const char *format, va_list ap)
+__LIBLOG_EXPORT void log_stderr(log_level_t level, const char *format, va_list ap)
 {
 	flockfile(stderr);
 	fprintf(stderr, "<%d> ", level);

@@ -59,7 +59,7 @@ static log_namespace_t *log_namespace_get(const char *ns)
 
 /*------------------------------------------------------------------------*/
 
-int liblog_init(void)
+__LIBLOG_EXPORT int liblog_init(void)
 {
 	liblog_type_set(__LOG_NAMESPACE_STDERR, log_stderr);
 	liblog_type_set(__LOG_NAMESPACE_SYSLOG, log_syslog);
@@ -69,7 +69,7 @@ int liblog_init(void)
 
 /*------------------------------------------------------------------------*/
 
-log_level_t liblog_level_set(const char *ns, log_level_t level)
+__LIBLOG_EXPORT log_level_t liblog_level_set(const char *ns, log_level_t level)
 {
 	log_namespace_t *lns;
 
@@ -86,7 +86,7 @@ log_level_t liblog_level_set(const char *ns, log_level_t level)
 
 /*------------------------------------------------------------------------*/
 
-log_level_t liblog_level_get(const char *ns)
+__LIBLOG_EXPORT log_level_t liblog_level_get(const char *ns)
 {
 	log_namespace_t *lns;
 
@@ -99,7 +99,7 @@ log_level_t liblog_level_get(const char *ns)
 
 /*------------------------------------------------------------------------*/
 
-log_func_t liblog_type_set(const char *ns, log_func_t func)
+__LIBLOG_EXPORT log_func_t liblog_type_set(const char *ns, log_func_t func)
 {
 	log_namespace_t *lns;
 
@@ -116,7 +116,7 @@ log_func_t liblog_type_set(const char *ns, log_func_t func)
 
 /*------------------------------------------------------------------------*/
 
-log_func_t liblog_type_get(const char *ns)
+__LIBLOG_EXPORT log_func_t liblog_type_get(const char *ns)
 {
 	log_namespace_t *lns;
 
@@ -129,7 +129,7 @@ log_func_t liblog_type_get(const char *ns)
 
 /*------------------------------------------------------------------------*/
 
-void liblog_printf(log_level_t level, const char *ns, const char *format, ...)
+__LIBLOG_EXPORT void liblog_printf(log_level_t level, const char *ns, const char *format, ...)
 {
 	log_namespace_t *lns;
 
@@ -150,7 +150,7 @@ void liblog_printf(log_level_t level, const char *ns, const char *format, ...)
 
 /*------------------------------------------------------------------------*/
 
-void liblog_uninit(void)
+__LIBLOG_EXPORT void liblog_uninit(void)
 {
 	log_namespace_t *item, *tmp;
 

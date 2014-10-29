@@ -23,7 +23,7 @@
 
 #include <liblog/log.h>
 
-void log_syslog(log_level_t level, const char *format, va_list ap)
+__LIBLOG_EXPORT void log_syslog(log_level_t level, const char *format, va_list ap)
 {
 	vsyslog(level, format, ap);
 }
