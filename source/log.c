@@ -19,15 +19,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
-#include "liblog/stderr.h"
-#include "liblog/syslog.h"
+#include <tools/list.h>
+
+#include <liblog/log.h>
+#include <liblog/stderr.h>
+#include <liblog/syslog.h>
 
 /*------------------------------------------------------------------------*/
 
-static list_node_t log_namespaces = list_init_value(&log_namespaces);
+/** type of namespace logging */
+typedef struct log_namespace {
+	/** list pointer */
+	struct list node;
+
+	/** logger function */
+	log_func_t log_func;
+
+	/** current logging level */
+	int level;
+
+	/** namespace of logging */
+	char name[PATH_MAX];
+} log_namespace_t;
+
+/*------------------------------------------------------------------------*/
+
+static struct list log_namespaces = list_initializer(&log_namespaces);
 
 /*------------------------------------------------------------------------*/
 
@@ -39,7 +61,7 @@ static log_namespace_t *log_namespace_get(const char *ns)
 	ns = ns ? ns : "";
 
 	list_foreach (&log_namespaces, ret, log_namespace_t, node) {
-		if (!strcmp(ns, ret->name)) {
+		if (!strncmp(ret->name, ns, sizeof(ret->name))) {
 			return (ret);
 		}
 	}
@@ -48,7 +70,7 @@ static log_namespace_t *log_namespace_get(const char *ns)
 		strncpy(ret->name, ns, sizeof(ret->name) - 1);
 		ret->name[sizeof(ret->name) - 1] = 0;
 
-		ret->current = __LOG_LEVEL_RUNTIME;
+		ret->level = __LOG_LEVEL_RUNTIME;
 		ret->log_func = log_stderr;
 
 		list_add_node(&log_namespaces, &ret->node);
@@ -69,7 +91,7 @@ __LIBLOG_EXPORT int liblog_init(void)
 
 /*------------------------------------------------------------------------*/
 
-__LIBLOG_EXPORT log_level_t liblog_level_set(const char *ns, log_level_t level)
+__LIBLOG_EXPORT int liblog_level_set(const char *ns, int level)
 {
 	log_namespace_t *lns;
 
@@ -77,16 +99,15 @@ __LIBLOG_EXPORT log_level_t liblog_level_set(const char *ns, log_level_t level)
 		return (__LOG_LEVEL_RUNTIME);
 	}
 
-	log_level_t ret;
+	int rc = lns->level;
+	lns->level = level;
 
-	ret = lns->current; lns->current = level;
-
-	return(ret);
+	return(rc);
 }
 
 /*------------------------------------------------------------------------*/
 
-__LIBLOG_EXPORT log_level_t liblog_level_get(const char *ns)
+__LIBLOG_EXPORT int liblog_level_get(const char* ns)
 {
 	log_namespace_t *lns;
 
@@ -94,7 +115,7 @@ __LIBLOG_EXPORT log_level_t liblog_level_get(const char *ns)
 		return (__LOG_LEVEL_RUNTIME);
 	}
 
-	return (lns->current);
+	return (lns->level);
 }
 
 /*------------------------------------------------------------------------*/
@@ -107,9 +128,8 @@ __LIBLOG_EXPORT log_func_t liblog_type_set(const char *ns, log_func_t func)
 		return (log_stderr);
 	}
 
-	log_func_t ret;
-
-	ret = lns->log_func; lns->log_func = func;
+	log_func_t ret = lns->log_func;
+	lns->log_func = func;
 
 	return(ret);
 }
@@ -129,15 +149,11 @@ __LIBLOG_EXPORT log_func_t liblog_type_get(const char *ns)
 
 /*------------------------------------------------------------------------*/
 
-__LIBLOG_EXPORT void liblog_printf(log_level_t level, const char *ns, const char *format, ...)
+__LIBLOG_EXPORT void liblog_printf(int level, const char *ns, const char *format, ...)
 {
 	log_namespace_t *lns;
 
-	if (!(lns = log_namespace_get(ns))) {
-		return;
-	}
-
-	if(level > lns->current) {
+	if (!(lns = log_namespace_get(ns)) || level > lns->level) {
 		return;
 	}
 

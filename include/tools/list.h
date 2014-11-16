@@ -24,21 +24,29 @@
 
 #include <stddef.h>
 
+/*------------------------------------------------------------------------*/
+
 /** node of double-linked list */
-typedef struct list_node {
+struct list {
 	/** pointer to previous node */
-	struct list_node *prev;
+	struct list *prev;
 
 	/** pointer to next node */
-	struct list_node *next;
-} list_node_t;
+	struct list *next;
+};
+
+/*------------------------------------------------------------------------*/
 
 /** should be used to static initialization */
-#define list_init_value(list) { .prev = list, .next = list, }
+#define list_initializer(list) { .prev = list, .next = list, }
+
+/*------------------------------------------------------------------------*/
 
 /** return pointer to struct of type, which hold field */
 #define containerof(ptr, type, field)                                     \
 	((type*)((size_t)(ptr) - offsetof(type, field)))
+
+/*------------------------------------------------------------------------*/
 
 /** iterate over all list nodes */
 #define list_foreach(list, node, type, field)                             \
@@ -46,12 +54,16 @@ typedef struct list_node {
 		&(node)->field != (list);                                         \
 		(node) = containerof((node)->field.next, type, field))
 
+/*------------------------------------------------------------------------*/
+
 /** iterate over all list nodes, also allow node deletion */
 #define list_foreach_safe(list, node, temp, type, field)                  \
 	for(node = containerof((list)->next, type, field),                    \
 		temp = containerof((node)->field.next, type, field);              \
 		&(node)->field != (list);                                         \
 		node = temp, temp = containerof((temp)->field.next, type, field))
+
+/*------------------------------------------------------------------------*/
 
 /** add node to list */
 #define list_add_node(list, node)                                         \
@@ -61,6 +73,8 @@ typedef struct list_node {
 		(list)->next->prev = (node);                                      \
 		(list)->next = (node);                                            \
 	} while(0);                                                           \
+
+/*------------------------------------------------------------------------*/
 
 /** remove node from list */
 #define list_del_node(node)                                               \

@@ -35,6 +35,6 @@
  * @param [in] format format of message
  * @param [in] ap arguments list
  */
-void log_syslog(log_level_t level, const char *format, va_list ap);
+void log_syslog(int level, const char *format, va_list ap);
 
 #endif /* __LIB_LOG_SYSLOG_H */

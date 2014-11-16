@@ -35,6 +35,6 @@
  * @param [in] format format of message
  * @param [in] ap arguments list
  */
-void log_stderr(log_level_t level, const char *format, va_list ap);
+void log_stderr(int level, const char *format, va_list ap);
 
 #endif /* __LIB_LOG_STDERR_H */

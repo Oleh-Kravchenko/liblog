@@ -22,11 +22,8 @@
 #ifndef __LIB_LOG_H
 #define __LIB_LOG_H
 
-#include <limits.h>
 #include <stdarg.h>
 #include <stdlib.h>
-
-#include <tools/list.h>
 
 /**
  * @def __LIBLOG_EXPORT
@@ -47,88 +44,70 @@
 /**
  * @defgroup log Logging macros
  *
- * Эти макросы позволяют легко и быстро добавить журналирование в вашу
- * программу, они обратно совместимы с уровнями журналирования syslog и
+ * These macros allow you to quickly and easily add logging to your
+ * program, they are backward compatible with syslog logging levels and
  * linux kernel.
  *
  * @{
  *
- * Для удобного использования определены макросы влияющие на поведение
- * журналирования:
- * @li __LOG_LEVEL_COMPILE максимальный уровень журналирования определяемый во время компиляции
- * @li __LOG_LEVEL_RUNTIME максимальный уровень журналирования по-умолчанию во время работы программы
- * @li __LOG_NAMESPACE простраство для журналирования событий, по-умолчанию ""
+ * Logging configurations:
+ * @li __LOG_LEVEL_COMPILE maximum level of logging, at compile time
+ * @li __LOG_LEVEL_RUNTIME maximum level of logging, at run time
+ * @li __LOG_NAMESPACE namespace of logging, by default ""
  *
- * На данный момент поддерживается два вида журналирования:
- * @li stderr вывод отладочных сообщений в stderr
- * @li syslog отправка отладочных сообщений в syslog демон
+ * Supported next type of logger:
+ * @li stderr print messages into stderr
+ * @li syslog print messages into syslog daemon
  *
- * Прототип функции журналирования:
+ * Logging function prototype:
  * @code
- * void func(log_level_t level, const char* format, ...)
+ * void func(int level, const char* format, ...)
  * @endcode
  *
- * Пример использования:
- * @li Печать в stderr
+ * Usage example:
+ * @li print to stderr
  * @code
  * #undef __LOG_NAMESPACE
  * #define __LOG_NAMESPACE "stderr"
  *	log_set_type(__LOG_NAMESPACE, log_stderr);
  *	_DEBUG("debug-level message");
  * @endcode
- * @li syslog
+ * @li print to syslog
  * @code
  * #undef __LOG_NAMESPACE
  * #define __LOG_NAMESPACE "syslog"
  *	log_set_type(__LOG_NAMESPACE, log_syslog);
  *	_DEBUG("debug-level message");
  * @endcode
- * @li по завершении работы программы следует вызвать:
+ * @li at program exit, should be called this function:
  * @code
- *	log_gc();
+ *	liblog_uninit();
  * @endcode
  */
 
 /*------------------------------------------------------------------------*/
 
-/** уровни журналирования, в порядке убывания приоритета */
-typedef enum log_level {
-	__LOG_EMERG     = 0,  /**< system is unusable */
-	__LOG_ALERT     = 1,  /**< action must be taken immediately */
-	__LOG_CRIT      = 2,  /**< critical conditions */
-	__LOG_ERR       = 3,  /**< error conditions */
-	__LOG_WARNING   = 4,  /**< warning conditions */
-	__LOG_NOTICE    = 5,  /**< normal, but significant, condition */
-	__LOG_INFO      = 6,  /**< informational message */
-	__LOG_DEBUG     = 7,  /**< debug-level message */
-} log_level_t;
+/** levels of logging */
+#define __LOG_EMERG     0	/**< system is unusable */
+#define __LOG_ALERT     1	/**< action must be taken immediately */
+#define __LOG_CRIT      2	/**< critical conditions */
+#define __LOG_ERR       3	/**< error conditions */
+#define __LOG_WARNING   4	/**< warning conditions */
+#define __LOG_NOTICE    5	/**< normal, but significant, condition */
+#define __LOG_INFO      6	/**< informational message */
+#define __LOG_DEBUG     7	/**< debug-level message */
 
 /*------------------------------------------------------------------------*/
 
 /** logging function type */
-typedef void (*log_func_t)(log_level_t, const char *, va_list);
-
-/** type of namespace logging */
-typedef struct log_namespace {
-	/** list pointer */
-	list_node_t node;
-
-	/** logger function */
-	log_func_t log_func;
-
-	/** current logging level */
-	log_level_t current;
-
-	/** namespace of logging */
-	char name[PATH_MAX];
-} log_namespace_t;
+typedef void (*log_func_t)(int level, const char *format, va_list ap);
 
 /*------------------------------------------------------------------------*/
 
 /**
  * @def __LOG_LEVEL_COMPILE
  *
- * Максимальный уровень журналирования определяемый во время компиляции.
+ * Maximum level of logging per compile time.
  */
 #ifndef __LOG_LEVEL_COMPILE
 #	ifdef NDEBUG
@@ -143,14 +122,10 @@ typedef struct log_namespace {
 /**
  * @def __LOG_LEVEL_RUNTIME
  *
- * Максимальный уровень журналирования во время работы программы.
+ * Maximum level of logging at runtime.
  */
 #ifndef __LOG_LEVEL_RUNTIME
-#	ifdef NDEBUG
-#		define __LOG_LEVEL_RUNTIME __LOG_NOTICE
-#	else /* NDEBUG */
-#		define __LOG_LEVEL_RUNTIME __LOG_INFO
-#	endif /* NDEBUG */
+#	define __LOG_LEVEL_RUNTIME __LOG_WARNING
 #endif /* __LOG_LEVEL_RUNTIME */
 
 /*------------------------------------------------------------------------*/
@@ -158,8 +133,7 @@ typedef struct log_namespace {
 /**
  * @def __LOG_NAMESPACE
  *
- * Простраство имен журналирования сообщений,
- * может использоваться внутри модулей.
+ * Namespace for logging, can be specified per module.
  */
 #ifndef __LOG_NAMESPACE
 #	define __LOG_NAMESPACE NULL
@@ -183,14 +157,14 @@ int liblog_init(void);
  * @param [in] level new debugging level
  * @return old level of logging
  */
-log_level_t liblog_level_set(const char *ns, log_level_t level);
+int liblog_level_set(const char *ns, int level);
 
 /**
  * @brief get current level of logging
  * @param [in] ns namespace of logging
  * @return current level of logging
  */
-log_level_t liblog_level_get(const char *ns);
+int liblog_level_get(const char *ns);
 
 /**
  * @brief set type of logger
@@ -213,7 +187,7 @@ log_func_t liblog_type_get(const char *ns);
  * @param [in] ns namespace of logging (can be NULL)
  * @param [in] format format string
  */
-void liblog_printf(log_level_t level, const char *ns, const char *format, ...);
+void liblog_printf(int level, const char *ns, const char *format, ...);
 
 /** cleanup namespaces */
 void liblog_uninit(void);
@@ -253,7 +227,7 @@ void liblog_uninit(void);
 /**
  * @def _EMERG
  *
- * Вывод сообщения о критической ошибке и завершения работы программы.
+ * Print emergency message and abort program.
  */
 
 #if __LOG_EMERG <= __LOG_LEVEL_COMPILE
@@ -274,7 +248,7 @@ void liblog_uninit(void);
 /**
  * @def _ALERT
  *
- * Вывод сообщения о критической ошибке.
+ * Print alert message.
  */
 
 #if __LOG_ALERT <= __LOG_LEVEL_COMPILE
@@ -289,7 +263,7 @@ void liblog_uninit(void);
 /**
  * @def _CRIT
  *
- * Вывод сообщения о серьезной ошибке.
+ * Print critical error message.
  */
 
 #if __LOG_CRIT <= __LOG_LEVEL_COMPILE
@@ -304,7 +278,7 @@ void liblog_uninit(void);
 /**
  * @def _ERR
  *
- * Вывод сообщения об ошибке.
+ * Print error message.
  */
 
 #if __LOG_ERR <= __LOG_LEVEL_COMPILE
@@ -319,7 +293,7 @@ void liblog_uninit(void);
 /**
  * @def _WARNING
  *
- * Вывод предупреждения.
+ * Print warning message.
  */
 
 #if __LOG_WARNING <= __LOG_LEVEL_COMPILE
@@ -334,7 +308,7 @@ void liblog_uninit(void);
 /**
  * @def _NOTICE
  *
- * Вывод уведомления.
+ * Print notice message.
  */
 
 #if __LOG_NOTICE <= __LOG_LEVEL_COMPILE
@@ -349,7 +323,7 @@ void liblog_uninit(void);
 /**
  * @def _INFO
  *
- * Вывод информационного сообщения.
+ * Print informational message.
  */
 
 #if __LOG_INFO <= __LOG_LEVEL_COMPILE
@@ -364,7 +338,7 @@ void liblog_uninit(void);
 /**
  * @def _DEBUG
  *
- * Вывод отладочной информации.
+ * Print debug message.
  */
 
 #if __LOG_DEBUG <= __LOG_LEVEL_COMPILE

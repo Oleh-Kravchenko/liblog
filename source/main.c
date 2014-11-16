@@ -16,8 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdlib.h>
+
 #include <liblog/stderr.h>
 #include <liblog/syslog.h>
+
+/*------------------------------------------------------------------------*/
 
 int main(void)
 {
@@ -25,7 +29,7 @@ int main(void)
 
 	/* log to stderr */
 #undef __LOG_NAMESPACE
-#define __LOG_NAMESPACE "stderr"
+#define __LOG_NAMESPACE __LOG_NAMESPACE_STDERR
 	liblog_type_set(__LOG_NAMESPACE, log_stderr);
 	_DEBUG("debug-level message");
 	_INFO("informational message");
@@ -37,7 +41,7 @@ int main(void)
 
 	/* log to syslog */
 #undef __LOG_NAMESPACE
-#define __LOG_NAMESPACE "syslog"
+#define __LOG_NAMESPACE __LOG_NAMESPACE_SYSLOG
 	liblog_type_set(__LOG_NAMESPACE, log_syslog);
 	liblog_level_set(__LOG_NAMESPACE, __LOG_DEBUG);
 	_DEBUG("debug-level message");

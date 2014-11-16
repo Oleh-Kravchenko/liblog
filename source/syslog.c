@@ -21,9 +21,11 @@
 
 #include <syslog.h>
 
-#include <liblog/log.h>
+#include "liblog/log.h"
 
-__LIBLOG_EXPORT void log_syslog(log_level_t level, const char *format, va_list ap)
+/*------------------------------------------------------------------------*/
+
+__LIBLOG_EXPORT void log_syslog(int level, const char *format, va_list ap)
 {
 	vsyslog(level, format, ap);
 }
