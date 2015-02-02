@@ -3,7 +3,7 @@
  * @author Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * liblog -- Logging macros
- * Copyright (C) 2014  Oleh Kravchenko <oleg@kaa.org.ua>
+ * Copyright (C) 2015  Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 /*------------------------------------------------------------------------*/
 
 /** type of namespace logging */
-typedef struct log_namespace {
+struct log_namespace {
 	/** list pointer */
 	struct list node;
 
@@ -45,7 +45,7 @@ typedef struct log_namespace {
 
 	/** namespace of logging */
 	char name[PATH_MAX];
-} log_namespace_t;
+};
 
 /*------------------------------------------------------------------------*/
 
@@ -53,14 +53,14 @@ static struct list log_namespaces = list_initializer(&log_namespaces);
 
 /*------------------------------------------------------------------------*/
 
-static log_namespace_t *log_namespace_get(const char *ns)
+static struct log_namespace *log_namespace_get(const char *ns)
 {
-	log_namespace_t *ret;
+	struct log_namespace *ret;
 
 	/* default namespace is "" */
 	ns = ns ? ns : "";
 
-	list_foreach (&log_namespaces, ret, log_namespace_t, node) {
+	list_foreach (&log_namespaces, ret, struct log_namespace, node) {
 		if (!strncmp(ret->name, ns, sizeof(ret->name))) {
 			return (ret);
 		}
@@ -73,7 +73,7 @@ static log_namespace_t *log_namespace_get(const char *ns)
 		ret->level = __LOG_LEVEL_RUNTIME;
 		ret->log_func = log_stderr;
 
-		list_add_node(&log_namespaces, &ret->node);
+		list_add_tail(&log_namespaces, &ret->node);
 	}
 
 	return (ret);
@@ -93,7 +93,7 @@ __LIBLOG_EXPORT int liblog_init(void)
 
 __LIBLOG_EXPORT int liblog_level_set(const char *ns, int level)
 {
-	log_namespace_t *lns;
+	struct log_namespace *lns;
 
 	if (!(lns = log_namespace_get(ns))) {
 		return (__LOG_LEVEL_RUNTIME);
@@ -109,7 +109,7 @@ __LIBLOG_EXPORT int liblog_level_set(const char *ns, int level)
 
 __LIBLOG_EXPORT int liblog_level_get(const char* ns)
 {
-	log_namespace_t *lns;
+	struct log_namespace *lns;
 
 	if (!(lns = log_namespace_get(ns))) {
 		return (__LOG_LEVEL_RUNTIME);
@@ -122,7 +122,7 @@ __LIBLOG_EXPORT int liblog_level_get(const char* ns)
 
 __LIBLOG_EXPORT log_func_t liblog_type_set(const char *ns, log_func_t func)
 {
-	log_namespace_t *lns;
+	struct log_namespace *lns;
 
 	if (!(lns = log_namespace_get(ns))) {
 		return (log_stderr);
@@ -138,7 +138,7 @@ __LIBLOG_EXPORT log_func_t liblog_type_set(const char *ns, log_func_t func)
 
 __LIBLOG_EXPORT log_func_t liblog_type_get(const char *ns)
 {
-	log_namespace_t *lns;
+	struct log_namespace *lns;
 
 	if (!(lns = log_namespace_get(ns))) {
 		return (log_stderr);
@@ -151,7 +151,7 @@ __LIBLOG_EXPORT log_func_t liblog_type_get(const char *ns)
 
 __LIBLOG_EXPORT void liblog_printf(int level, const char *ns, const char *format, ...)
 {
-	log_namespace_t *lns;
+	struct log_namespace *lns;
 
 	if (!(lns = log_namespace_get(ns)) || level > lns->level) {
 		return;
@@ -168,10 +168,10 @@ __LIBLOG_EXPORT void liblog_printf(int level, const char *ns, const char *format
 
 __LIBLOG_EXPORT void liblog_uninit(void)
 {
-	log_namespace_t *item, *tmp;
+	struct log_namespace *item, *tmp;
 
 	/* destroy all namespaces */
-	list_foreach_safe (&log_namespaces, item, tmp, log_namespace_t, node) {
+	list_foreach_safe (&log_namespaces, item, tmp, struct log_namespace, node) {
 		list_del_node(&item->node);
 		free(item);
 	}
