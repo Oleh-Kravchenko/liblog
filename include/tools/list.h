@@ -3,7 +3,7 @@
  * @author Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * liblog -- Logging macros
- * Copyright (C) 2014  Oleh Kravchenko <oleg@kaa.org.ua>
+ * Copyright (C) 2015  Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,14 @@ struct list {
 
 /*------------------------------------------------------------------------*/
 
+/** should be used to runtime initialization */
+#define list_init(list)                                                   \
+	do {                                                                  \
+		(list)->prev = (list)->next = (list);                             \
+	} while (0)
+
+/*------------------------------------------------------------------------*/
+
 /** return pointer to struct of type, which hold field */
 #define containerof(ptr, type, field)                                     \
 	((type*)((size_t)(ptr) - offsetof(type, field)))
@@ -65,8 +73,8 @@ struct list {
 
 /*------------------------------------------------------------------------*/
 
-/** add node to list */
-#define list_add_node(list, node)                                         \
+/** add node to head of list */
+#define list_add_head(list, node)                                         \
 	do {                                                                  \
 		(node)->next = (list)->next;                                      \
 		(node)->prev = (list);                                            \
@@ -76,12 +84,29 @@ struct list {
 
 /*------------------------------------------------------------------------*/
 
+/** add node to tail of list */
+#define list_add_tail(list, node)                                         \
+	do {                                                                  \
+		(node)->prev = (list)->prev;                                      \
+		(node)->next = (list);                                            \
+		(list)->prev->next = (node);                                      \
+		(list)->prev = (node);                                            \
+	} while(0);                                                           \
+
+/*------------------------------------------------------------------------*/
+
 /** remove node from list */
 #define list_del_node(node)                                               \
 	do {                                                                  \
 		(node)->next->prev = (node)->prev;                                \
 		(node)->prev->next = (node)->next;                                \
-		(node)->prev = (node)->next = 0;                                  \
+		(node)->prev = (node)->next = NULL;                               \
 	} while(0);
+
+/*------------------------------------------------------------------------*/
+
+/** expression is true, if list is empty */
+#define list_is_empty(list)                                               \
+	((list)->prev == (list) && (list) == (list)->next)
 
 #endif /* __TOOLS_LIST_H */
