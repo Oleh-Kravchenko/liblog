@@ -1,60 +1,190 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
-PROJECT(liblog)
+PROJECT(liblog VERSION 0.0.1)
 
-INCLUDE_DIRECTORIES(include)
+INCLUDE(CMakePackageConfigHelpers)
+INCLUDE(GNUInstallDirs)
 
-ADD_DEFINITIONS(-pedantic -std=gnu99)
+SET(CMAKE_USE_RELATIVE_PATHS TRUE)
+SET(INSTALL_INCLUDE_DIR "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}-${PROJECT_VERSION}")
+SET(INSTALL_CONFIG_FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake")
+SET(INSTALL_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake")
 
-# support subdirectory
-SET(LIBLOG_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
+FIND_PACKAGE(Doxygen)
+FIND_PACKAGE(libtools COMPONENTS uriparser REQUIRED)
 
-# main
-SET(LIBLOG_SOURCES
-include/tools/list.h
+# catch lazy errors during compilation and enable GNU extensions
+ADD_DEFINITIONS(-pedantic -std=gnu99 -Wall -Wextra -Werror -D_GNU_SOURCE)
+
+# define and share object files between shard and static libraries
+SET(LIBLOG_HEADERS
+include/liblog/defines.h
 include/liblog/log.h
-include/liblog/stderr.h
-include/liblog/syslog.h
+include/liblog/types.h
+include/liblog/loggers/file.h
+)
+
+SET(LIBLOG_SOURCES
 source/log.c
+source/namespace.h
+source/namespace.c
+source/stderr.h
 source/stderr.c
-source/syslog.c
+source/logger.c
+source/loggers/file.c
+)
+ADD_LIBRARY(liblog_objects OBJECT
+${LIBLOG_HEADERS}
+${LIBLOG_SOURCES}
 )
 
-ADD_LIBRARY(logcore OBJECT ${LIBLOG_SOURCES})
-SET_PROPERTY(TARGET logcore PROPERTY COMPILE_FLAGS "-fPIC")
-
-ADD_LIBRARY(log SHARED $<TARGET_OBJECTS:logcore>)
-
-ADD_LIBRARY(log_static STATIC $<TARGET_OBJECTS:logcore>)
-SET_TARGET_PROPERTIES(log_static PROPERTIES OUTPUT_NAME "log")
-
-ADD_EXECUTABLE(demo source/main.c)
-TARGET_LINK_LIBRARIES(demo log)
-
-
-# uninstall target
-CONFIGURE_FILE(
-"${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
-"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-IMMEDIATE @ONLY
+TARGET_INCLUDE_DIRECTORIES(liblog_objects
+PRIVATE
+	include
+	$<TARGET_PROPERTY:libtools,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-ADD_CUSTOM_TARGET(uninstall "${CMAKE_COMMAND}"
--P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+SET_PROPERTY(TARGET liblog_objects PROPERTY COMPILE_FLAGS "-fPIC")
+
+# define static library
+ADD_LIBRARY(liblog_static STATIC $<TARGET_OBJECTS:liblog_objects>)
+
+SET_TARGET_PROPERTIES(liblog_static PROPERTIES OUTPUT_NAME "log")
+SET_TARGET_PROPERTIES(liblog_static PROPERTIES VERSION "${PROJECT_VERSION}")
+SET_TARGET_PROPERTIES(liblog_static PROPERTIES SOVERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
+
+TARGET_INCLUDE_DIRECTORIES(liblog_static
+INTERFACE
+	$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
+# define shared library
+ADD_LIBRARY(liblog SHARED $<TARGET_OBJECTS:liblog_objects>)
 
-# install
-INSTALL(TARGETS log log_static
-RUNTIME DESTINATION bin
-LIBRARY DESTINATION lib
-ARCHIVE DESTINATION lib
+SET_TARGET_PROPERTIES(liblog PROPERTIES OUTPUT_NAME "log")
+SET_TARGET_PROPERTIES(liblog PROPERTIES VERSION "${PROJECT_VERSION}")
+SET_TARGET_PROPERTIES(liblog PROPERTIES SOVERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
+
+TARGET_INCLUDE_DIRECTORIES(liblog
+INTERFACE
+	$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+
+TARGET_LINK_LIBRARIES(liblog
+PRIVATE
+	${MYSQL_LIBRARY}
+	${OPENSSL_LIBRARIES}
+	${URIPARSER_LIBRARIES}
+	pthread
+)
+
+# generate package version and configuration files
+WRITE_BASIC_PACKAGE_VERSION_FILE("${INSTALL_VERSION_FILE}"
+VERSION
+	${PROJECT_VERSION}
+COMPATIBILITY
+	SameMajorVersion
+)
+
+CONFIGURE_PACKAGE_CONFIG_FILE("cmake/${PROJECT_NAME}-config.cmake.in"
+"${INSTALL_CONFIG_FILE}"
+INSTALL_DESTINATION
+	"${CMAKE_INSTALL_LIBDIR}"
+)
+
+# install Runtime
+INSTALL(TARGETS liblog
+EXPORT
+	"${PROJECT_NAME}"
+LIBRARY DESTINATION
+	"${CMAKE_INSTALL_LIBDIR}"
+COMPONENT
+	Runtime
+)
+
+# install Devel
+INSTALL(TARGETS liblog_static
+EXPORT
+	"${PROJECT_NAME}"
+ARCHIVE DESTINATION
+	"${CMAKE_INSTALL_LIBDIR}"
+COMPONENT
+	Devel
+)
+
+INSTALL(DIRECTORY "include/liblog"
+DESTINATION
+	"${INSTALL_INCLUDE_DIR}"
+COMPONENT
+	Devel
+PATTERN *.h
 )
 
 INSTALL(FILES
-include/tools/list.h
-include/liblog/log.h
-include/liblog/stderr.h
-include/liblog/syslog.h
-DESTINATION include/liblog
+"${INSTALL_VERSION_FILE}"
+"${INSTALL_CONFIG_FILE}"
+DESTINATION
+	"${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${PROJECT_VERSION}"
+COMPONENT
+	Devel
+)
+
+INSTALL(EXPORT "${PROJECT_NAME}"
+FILE
+	${PROJECT_NAME}-targets.cmake
+DESTINATION
+	"${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${PROJECT_VERSION}"
+COMPONENT Devel
+)
+
+# generate man pages, if Doxygen available
+IF(DOXYGEN_FOUND)
+	CONFIGURE_FILE(
+	"${CMAKE_CURRENT_SOURCE_DIR}/cmake/Doxyfile.in"
+	"${CMAKE_CURRENT_BINARY_DIR}/Doxyfile"
+	@ONLY
+	)
+
+	ADD_CUSTOM_TARGET(doc
+	"${DOXYGEN_EXECUTABLE}"
+	WORKING_DIRECTORY
+		${CMAKE_CURRENT_BINARY_DIR}
+	COMMENT
+		"Generating API documentation with Doxygen"
+	SOURCES
+		"${LIBLOG_HEADERS}"
+		"${CMAKE_CURRENT_BINARY_DIR}/Doxyfile"
+	)
+
+	INSTALL(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/man/"
+	DESTINATION
+		"${CMAKE_INSTALL_MANDIR}"
+	COMPONENT
+		Devel
+	FILES_MATCHING
+		PATTERN "*.3"
+	)
+ENDIF()
+
+
+ADD_EXECUTABLE(testlog
+include/liblog/defines.h
+include/liblog/types.h
+source/main.c
+)
+
+SET_TARGET_PROPERTIES(testlog PROPERTIES LINKER_LANGUAGE CXX)
+
+TARGET_LINK_LIBRARIES(testlog
+PRIVATE
+	libtools
+	pthread
+	liblog_static
+)
+
+TARGET_INCLUDE_DIRECTORIES(testlog
+PRIVATE
+	include
 )

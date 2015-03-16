@@ -1,9 +1,7 @@
 /**
  * @file
- * @author Oleh Kravchenko <oleg@kaa.org.ua>
  *
- * liblog -- Logging macros
- * Copyright (C) 2014  Oleh Kravchenko <oleg@kaa.org.ua>
+ * Copyright (C) 2016  Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,17 +17,46 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
+#include <inttypes.h>
 #include <stdio.h>
+#include <time.h>
+#include <libtools/tools.h>
 
-#include "liblog/log.h"
+#include "stderr.h"
 
 /*------------------------------------------------------------------------*/
 
-__LIBLOG_EXPORT void log_stderr(int level, const char *format, va_list ap)
-{
+int ll_stderr_pr(void *priv, const char *name, enum ll_level level,
+	const char *format, va_list args
+) {
+	unused(priv);
+
+	assert(name);
+	assert(format);
+
+	int rc = -1;
+
 	flockfile(stderr);
-	fprintf(stderr, "<%d> ", level);
-	vfprintf(stderr, format, ap);
-	fputc('\n', stderr);
+
+	do {
+		if (fprintf(stderr, "%" PRIi64 ";%s;%d;",
+			(int64_t)time(NULL), name, level) < 0) {
+			break;
+		}
+
+		if (vfprintf(stderr, format, args) < 0) {
+			break;
+		}
+
+		if (fputc('\n', stderr) < 0) {
+			break;
+		}
+
+		rc = 0;
+	} while (0);
+
 	funlockfile(stderr);
+
+	return (rc);
 }

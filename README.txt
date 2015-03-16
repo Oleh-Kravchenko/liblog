@@ -1,1 +1,0 @@
-liblog - library for logging

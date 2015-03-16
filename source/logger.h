@@ -1,9 +1,7 @@
 /**
  * @file
- * @author Oleh Kravchenko <oleg@kaa.org.ua>
  *
- * liblog -- Logging macros
- * Copyright (C) 2014  Oleh Kravchenko <oleg@kaa.org.ua>
+ * Copyright (C) 2016  Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,22 +17,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LIB_LOG_SYSLOG_H
-#define __LIB_LOG_SYSLOG_H
+#ifndef __LIBLOG_LOGGER_H
+#define __LIBLOG_LOGGER_H
 
-#define __LOG_NAMESPACE_SYSLOG "syslog"
+#include <libtools/url.h>
 
-#undef __LOG_NAMESPACE
-#define __LOG_NAMESPACE __LOG_NAMESPACE_SYSLOG
-
-#include <liblog/log.h>
+#include "namespace.h"
 
 /**
- * @brief print log message into syslog
- * @param [in] level level of logging
- * @param [in] format format of message
- * @param [in] ap arguments list
+ * @brief Open and setup logger for specified namespace
+ * @param [in] u pointer to parsed URI
+ * @param [in] ns pointer to namespace
+ * @return on success, zero is returned
+ * @retval -1 error occurred
  */
-void log_syslog(int level, const char *format, va_list ap);
+int ll_logger_open(struct url *u, struct ll_namespace *ns);
 
-#endif /* __LIB_LOG_SYSLOG_H */
+/** Unregister loggers */
+void ll_logger_free(void);
+
+#endif /* __LIBLOG_LOGGER_H */

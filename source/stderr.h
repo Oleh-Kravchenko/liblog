@@ -1,9 +1,7 @@
 /**
  * @file
- * @author Oleh Kravchenko <oleg@kaa.org.ua>
  *
- * liblog -- Logging macros
- * Copyright (C) 2014  Oleh Kravchenko <oleg@kaa.org.ua>
+ * Copyright (C) 2016  Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,22 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LIB_LOG_STDERR_H
-#define __LIB_LOG_STDERR_H
+#ifndef __LIBLOG_STDERR_H
+#define __LIBLOG_STDERR_H
 
-#define __LOG_NAMESPACE_STDERR "stderr"
-
-#undef __LOG_NAMESPACE
-#define __LOG_NAMESPACE __LOG_NAMESPACE_STDERR
-
-#include <liblog/log.h>
+#include "liblog/types.h"
 
 /**
- * @brief print log message into stderr
- * @param [in] level level of logging
- * @param [in] format format of message
- * @param [in] ap arguments list
+ * @brief Print message to stderr
+ * @copydetails ll_pr_cb_t
  */
-void log_stderr(int level, const char *format, va_list ap);
+int ll_stderr_pr(void *priv, const char *name, enum ll_level level,
+	const char *format, va_list args
+);
 
-#endif /* __LIB_LOG_STDERR_H */
+#endif /* __LIBLOG_STDERR_H */

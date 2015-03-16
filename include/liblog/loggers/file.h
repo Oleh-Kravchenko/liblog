@@ -1,9 +1,7 @@
 /**
  * @file
- * @author Oleh Kravchenko <oleg@kaa.org.ua>
  *
- * liblog -- Logging macros
- * Copyright (C) 2014  Oleh Kravchenko <oleg@kaa.org.ua>
+ * Copyright (C) 2016  Oleh Kravchenko <oleg@kaa.org.ua>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,13 +17,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <syslog.h>
+#ifndef __LIBLOG_FILE_H
+#define __LIBLOG_FILE_H
 
-#include "liblog/log.h"
+/**
+ * @addtogroup liblog_loggers
+ *
+ * @{
+ */
 
-/*------------------------------------------------------------------------*/
+/**
+ * @brief Register file logger in liblog
+ * @return on success, zero is returned
+ * @retval -1 error occurred
+ *
+ * Accepted URI for this logger type is:
+ * @li file:/FILENAME - absolute path
+ * @li file:FILENAME - local path
+ */
+int ll_logger_file(void);
 
-__LIBLOG_EXPORT void log_syslog(int level, const char *format, va_list ap)
-{
-	vsyslog(level, format, ap);
-}
+/** @} */
+
+#endif /* __LIBLOG_FILE_H */
