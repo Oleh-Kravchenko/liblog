@@ -59,6 +59,11 @@ INTERFACE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
+TARGET_LINK_LIBRARIES(liblog_static
+PUBLIC
+	libtools_static
+)
+
 # define shared library
 ADD_LIBRARY(liblog SHARED $<TARGET_OBJECTS:liblog_objects>)
 
@@ -73,11 +78,8 @@ INTERFACE
 )
 
 TARGET_LINK_LIBRARIES(liblog
-PRIVATE
-	${MYSQL_LIBRARY}
-	${OPENSSL_LIBRARIES}
-	${URIPARSER_LIBRARIES}
-	pthread
+PUBLIC
+	libtools
 )
 
 # generate package version and configuration files
@@ -179,9 +181,7 @@ SET_TARGET_PROPERTIES(testlog PROPERTIES LINKER_LANGUAGE CXX)
 
 TARGET_LINK_LIBRARIES(testlog
 PRIVATE
-	libtools
-	pthread
-	liblog_static
+	liblog
 )
 
 TARGET_INCLUDE_DIRECTORIES(testlog
