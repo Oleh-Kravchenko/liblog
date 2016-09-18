@@ -94,6 +94,10 @@ int ll_logger_open(struct url *u, struct ll_namespace *ns)
 			ns->pr_cb = i->pr_cb;
 			ns->close_cb = i->close_cb;
 
+			if (!i->open_cb) {
+				return (0);
+			}
+
 			return (i->open_cb(ns->name, ns->level, u, &ns->priv));
 		}
 	}

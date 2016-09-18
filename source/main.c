@@ -1,3 +1,4 @@
+#include "liblog/loggers/color.h"
 #include "liblog/loggers/file.h"
 #include "liblog/log.h"
 
@@ -5,6 +6,7 @@
 
 int main(void)
 {
+	ll_logger_color();
 	ll_logger_file();
 
 	LL_DEBUG("debug");

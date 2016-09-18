@@ -21,6 +21,7 @@ SET(LIBLOG_HEADERS
 include/liblog/defines.h
 include/liblog/log.h
 include/liblog/types.h
+include/liblog/loggers/color.h
 include/liblog/loggers/file.h
 )
 
@@ -31,6 +32,7 @@ source/namespace.c
 source/stderr.h
 source/stderr.c
 source/logger.c
+source/loggers/color.c
 source/loggers/file.c
 )
 ADD_LIBRARY(liblog_objects OBJECT
