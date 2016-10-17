@@ -22,7 +22,9 @@
 
 #include <liblog/defines.h>
 #include <stdarg.h>
-#include <libtools/url.h>
+
+/** forward declaration of libtools/url.h */
+struct url;
 
 /**
  * @defgroup liblog_types Types

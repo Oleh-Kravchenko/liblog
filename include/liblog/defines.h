@@ -21,7 +21,6 @@
 #define __LIBLOG_DEFINES_H
 
 #include <stdlib.h>
-#include <libtools/tools.h>
 
 /**
  * @defgroup liblog_macros Macros
@@ -36,6 +35,17 @@
  * @brief Helper macros for liblog, but can be also used in applications
  * @{
  */
+
+/**
+ * @def __stringify
+ *
+ * This macro do indirect stringification of input arguments,
+ * mostly used with `__LINE__`.
+ */
+#ifndef __stringify
+#	define __stringify_1(...) #__VA_ARGS__
+#	define __stringify(...) __stringify_1(__VA_ARGS__)
+#endif /* __stringify */
 
 /**
  * @def _LL_LINE

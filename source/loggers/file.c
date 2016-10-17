@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <libtools/tools.h>
+#include <libtools/url.h>
 
 #include "liblog/log.h"
 #include "liblog/loggers/file.h"
