@@ -87,6 +87,11 @@ int ll_logger_open(struct url *u, struct ll_namespace *ns)
 	assert(u);
 	assert(ns);
 
+	/* if scheme is not present in URI, abort */
+	if (!u->scheme) {
+		return (-1);
+	}
+
 	struct logger *i;
 
 	list_foreach(&loggers, i, struct logger, list) {
@@ -94,6 +99,7 @@ int ll_logger_open(struct url *u, struct ll_namespace *ns)
 			ns->pr_cb = i->pr_cb;
 			ns->close_cb = i->close_cb;
 
+			/* ignore, if logger does not have constructor */
 			if (!i->open_cb) {
 				return (0);
 			}
