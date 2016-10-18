@@ -75,8 +75,8 @@ static int file_pr(void *priv, const char *name, enum ll_level level,
 	flockfile(f);
 
 	do {
-		if (fprintf(f, "%" PRIi64 ";%s;%d;",
-			(int64_t)time(NULL), name, level) < 0) {
+		if (fprintf(f, "%" PRIi64 ";%s;%s;",
+			(int64_t)time(NULL), name, ll_level_str(level)) < 0) {
 			break;
 		}
 

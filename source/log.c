@@ -18,6 +18,7 @@
  */
 
 #include <assert.h>
+#include <libtools/tools.h>
 
 #include "liblog/log.h"
 #include "logger.h"
@@ -72,6 +73,28 @@ enum ll_level ll_level_set(const char *name, enum ll_level level)
 	ns->level = level;
 
 	return (ret);
+}
+
+/*------------------------------------------------------------------------*/
+
+const char *ll_level_str(enum ll_level level)
+{
+	static const char * const level_str[] = {
+		"EMERG",
+		"ALERT",
+		"CRIT",
+		"ERR",
+		"WARN",
+		"NOTICE",
+		"INFO",
+		"DEBUG",
+	};
+
+	if ((unsigned)level < countof(level_str)) {
+		return (level_str[level]);
+	}
+
+	return "";
 }
 
 /*------------------------------------------------------------------------*/

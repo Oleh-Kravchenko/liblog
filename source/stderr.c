@@ -23,6 +23,7 @@
 #include <time.h>
 #include <libtools/tools.h>
 
+#include "liblog/log.h"
 #include "stderr.h"
 
 /*------------------------------------------------------------------------*/
@@ -40,8 +41,8 @@ int ll_stderr_pr(void *priv, const char *name, enum ll_level level,
 	flockfile(stderr);
 
 	do {
-		if (fprintf(stderr, "%" PRIi64 ";%s;%d;",
-			(int64_t)time(NULL), name, level) < 0) {
+		if (fprintf(stderr, "%" PRIi64 ";%s;%s;",
+			(int64_t)time(NULL), name, ll_level_str(level)) < 0) {
 			break;
 		}
 

@@ -57,6 +57,14 @@ int ll_setup(const char *name, enum ll_level level, const char *uri);
  */
 enum ll_level ll_level_set(const char *name, enum ll_level level);
 
+/**
+ * @brief Return string representation of logging level
+ * @param [in] level logging level
+ * @return string representation of logging level
+ * @retval "" invalid logging level was specified
+ */
+const char *ll_level_str(enum ll_level level);
+
 /** Clean all memory used by liblog */
 void ll_cleanup(void);
 
