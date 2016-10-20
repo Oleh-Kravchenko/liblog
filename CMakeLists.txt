@@ -11,7 +11,13 @@ SET(INSTALL_CONFIG_FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmak
 SET(INSTALL_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake")
 
 FIND_PACKAGE(Doxygen)
-FIND_PACKAGE(libtools COMPONENTS uriparser REQUIRED)
+
+# allow import liblog and libtools by ADD_SUBDIRECTORY()
+IF(NOT TARGET libtools OR NOT TARGET libtools_static)
+	FIND_PACKAGE(libtools COMPONENTS uriparser REQUIRED)
+ELSE()
+	MESSAGE(WARNING "Targets libtools and libtools_static already defined!")
+ENDIF()
 
 # catch lazy errors during compilation and enable GNU extensions
 ADD_DEFINITIONS(-pedantic -std=gnu99 -Wall -Wextra -Werror -D_GNU_SOURCE)
