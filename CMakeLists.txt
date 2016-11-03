@@ -68,7 +68,7 @@ INTERFACE
 )
 
 TARGET_LINK_LIBRARIES(liblog_static
-PUBLIC
+PRIVATE
 	libtools_static
 )
 
@@ -86,7 +86,7 @@ INTERFACE
 )
 
 TARGET_LINK_LIBRARIES(liblog
-PUBLIC
+PRIVATE
 	libtools
 )
 
